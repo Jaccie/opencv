@@ -60,6 +60,7 @@ int main(int argc, char* argv[])
 		CapCam >> cam;
 		createTrackbar("Ratio", "Video", &slider_value, slider_max_value, on_trackbar);
 		on_trackbar(slider_value, 0);
+		waitKey(30);
 	}
 	return 0;
 }
