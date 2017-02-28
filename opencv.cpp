@@ -10,8 +10,9 @@
 using namespace cv;
 using namespace std;
 
-Mat cam,src_gray;
+Mat cam,frame,src_gray,gaus;
 Mat dst, detected_edges,edge;
+Mat resized;
 
 int edgeThresh = 1;
 int lowThreshold;
@@ -22,25 +23,27 @@ char* window_name = "Edge Map";
 int slider_value;
 void on_trackbar(int, void*)
 {
-	/// Reduce noise with a kernel 3x3
 	cvtColor(cam, src_gray, CV_BGR2GRAY);
-	//blur(src_gray, detected_edges, Size(3, 3));
-	/// Canny detector
-	Canny(src_gray, detected_edges, 50, 150, 3);
+	GaussianBlur(src_gray, gaus, Size(3, 3), 0, 0);
+	Canny(gaus, detected_edges, 50, 150, 3);
+	
 	cvtColor(detected_edges, detected_edges, CV_GRAY2BGR);
-	resize(detected_edges,detected_edges,Size(200,150));
-	resize(cam,cam,Size(200,150));
 
 	double alpha = (double)slider_value / 100.0;
 	double beta = (1.0 - alpha);
-	//cam.copyTo(dst, detected_edges);
+	dst = Scalar::all(0);
 	addWeighted(detected_edges,alpha, cam , beta, 0.0, dst);
+	resize(dst, resized, Size(dst.cols / 2.5, dst.rows / 2.5));
+
+	Mat imageROI = frame(Rect(0, 0, resized.cols, resized.rows));
+	resized.copyTo(imageROI);
+	imshow("Video", frame);
+	waitKey(30);
 }
 
 int main(int argc, char* argv[])
 {
-	Mat frame;
-	VideoCapture CapVideo("video.mp4");  // open the video file for reading
+	VideoCapture CapVideo("Logan.mp4"); 
 	VideoCapture CapCam(0);
 	slider_value = 0;
 	int slider_max_value = 100;
@@ -49,27 +52,14 @@ int main(int argc, char* argv[])
 		cout << "cannot open the video or camera." << endl;
 		return -1;
 	}
-	namedWindow("Video", CV_WINDOW_AUTOSIZE);
-	for (;;) {
 
-		Mat gray;
+	namedWindow("Video", 0);
+
+	for (;;) {
 		CapVideo.read(frame);
 		CapCam >> cam;
 		createTrackbar("Ratio", "Video", &slider_value, slider_max_value, on_trackbar);
-		//Create a matrix of the same type and size as src (for dst)
-		//dst.create(cam.size(), cam.type());
-		/// Convert the image to grayscale
-		//cvtColor(cam, src_gray, CV_BGR2GRAY);
-		/// Create a Trackbar for user to enter threshold
-		//createTrackbar("Ratio:", "Video", &lowThreshold, max_lowThreshold, CannyThreshold);
-
-		/// Show the image
-		//CannyThreshold(0, 0);
 		on_trackbar(slider_value, 0);
-		Mat imageROI = frame(Rect(0,0,dst.cols,dst.rows));
-		dst.copyTo(imageROI, dst);
-		imshow("Video",frame);
-		waitKey(30);
 	}
 	return 0;
 }
