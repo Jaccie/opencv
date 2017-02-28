@@ -1,3 +1,0 @@
-﻿  stdafx.cpp
-  opencv.cpp
-c:\users\jacciekao\documents\github\opencv\opencv.cpp(58): fatal error C1083: 無法開啟包含檔案: 'opencv2/highgui/highgui.hpp': No such file or directory
